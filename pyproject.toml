@@ -1,0 +1,48 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "observability-platform-agent"
+version = "0.1.0"
+description = "LangGraph diagnosis agent for ObservabilityPlatform"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "confluent-kafka>=2.6,<3",
+    "fastapi>=0.115,<1",
+    "grpcio>=1.81.1,<2",
+    "langchain-openai>=1.0,<2",
+    "langgraph>=1.0,<2",
+    "protobuf>=6.33.5,<7",
+    "pydantic>=2.9,<3",
+    "pydantic-settings>=2.6,<3",
+    "structlog>=24.4,<26",
+    "uvicorn[standard]>=0.32,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "grpcio-tools>=1.81.1,<2",
+    "pytest>=8.3,<10",
+    "pytest-cov>=6,<8",
+    "ruff>=0.8,<1",
+]
+
+[project.scripts]
+observability-agent = "observability_agent.main:run"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/observability_agent"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+extend-exclude = ["src/observability_agent/generated"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]

@@ -1,0 +1,10 @@
+{
+  "eventId": "evt-004",
+  "taskId": "task-001",
+  "incidentId": "incident-001",
+  "version": 1,
+  "errorCode": "MODEL_TIMEOUT",
+  "errorMessage": "DeepSeek request timed out",
+  "retryable": true,
+  "occurredAt": "2026-09-16T10:00:45Z"
+}

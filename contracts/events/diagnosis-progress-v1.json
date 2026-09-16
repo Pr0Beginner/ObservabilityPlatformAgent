@@ -1,0 +1,11 @@
+{
+  "eventId": "evt-002",
+  "taskId": "task-001",
+  "incidentId": "incident-001",
+  "version": 1,
+  "sequence": 3,
+  "step": "ANALYZING_LOGS",
+  "progress": 55,
+  "message": "正在分析相关日志",
+  "occurredAt": "2026-09-16T10:00:03Z"
+}

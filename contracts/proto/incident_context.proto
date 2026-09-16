@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package observability.v1;
+
+service IncidentContextService {
+  rpc GetIncidentContext(IncidentContextRequest) returns (IncidentContextResponse);
+}
+
+message IncidentContextRequest {
+  string incident_id = 1;
+  int32 log_limit = 2;
+}
+
+message IncidentContextResponse {
+  string incident_id = 1;
+  string title = 2;
+  string service = 3;
+  string environment = 4;
+  string severity = 5;
+  string status = 6;
+  string fingerprint = 7;
+  repeated LogEvidence logs = 8;
+}
+
+message LogEvidence {
+  string id = 1;
+  string timestamp = 2;
+  string level = 3;
+  string trace_id = 4;
+  string message = 5;
+  string fingerprint = 6;
+}

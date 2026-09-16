@@ -1,0 +1,13 @@
+{
+  "eventId": "evt-003",
+  "taskId": "task-001",
+  "incidentId": "incident-001",
+  "version": 1,
+  "rootCause": "数据库连接池耗尽导致请求超时",
+  "confidence": 0.86,
+  "evidence": ["log-001: 出现连接获取超时"],
+  "recommendations": ["检查连接泄漏和慢 SQL"],
+  "toolCalls": ["get_incident_context(incidentId=incident-001, logLimit=100)"],
+  "completedAt": "2026-09-16T10:00:05Z",
+  "error": null
+}
