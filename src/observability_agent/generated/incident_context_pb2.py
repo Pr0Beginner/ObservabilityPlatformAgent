@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x16incident_context.proto\x12\x10observability.v1\"@\n\x16IncidentContextRequest\x12\x13\n\x0bincident_id\x18\x01 \x01(\t\x12\x11\n\tlog_limit\x18\x02 \x01(\x05\"\xc7\x01\n\x17IncidentContextResponse\x12\x13\n\x0bincident_id\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12\x0f\n\x07service\x18\x03 \x01(\t\x12\x13\n\x0b\x65nvironment\x18\x04 \x01(\t\x12\x10\n\x08severity\x18\x05 \x01(\t\x12\x0e\n\x06status\x18\x06 \x01(\t\x12\x13\n\x0b\x66ingerprint\x18\x07 \x01(\t\x12+\n\x04logs\x18\x08 \x03(\x0b\x32\x1d.observability.v1.LogEvidence\"s\n\x0bLogEvidence\x12\n\n\x02id\x18\x01 \x01(\t\x12\x11\n\ttimestamp\x18\x02 \x01(\t\x12\r\n\x05level\x18\x03 \x01(\t\x12\x10\n\x08trace_id\x18\x04 \x01(\t\x12\x0f\n\x07message\x18\x05 \x01(\t\x12\x13\n\x0b\x66ingerprint\x18\x06 \x01(\t2\x83\x01\n\x16IncidentContextService\x12i\n\x12GetIncidentContext\x12(.observability.v1.IncidentContextRequest\x1a).observability.v1.IncidentContextResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x16incident_context.proto\x12\x10observability.v1\"@\n\x16IncidentContextRequest\x12\x13\n\x0bincident_id\x18\x01 \x01(\t\x12\x11\n\tlog_limit\x18\x02 \x01(\x05\"\xfd\x02\n\x17IncidentContextResponse\x12\x13\n\x0bincident_id\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12\x0f\n\x07service\x18\x03 \x01(\t\x12\x13\n\x0b\x65nvironment\x18\x04 \x01(\t\x12\x10\n\x08severity\x18\x05 \x01(\t\x12\x0e\n\x06status\x18\x06 \x01(\t\x12\x13\n\x0b\x66ingerprint\x18\x07 \x01(\t\x12+\n\x04logs\x18\x08 \x03(\x0b\x32\x1d.observability.v1.LogEvidence\x12\x19\n\x11related_trace_ids\x18\t \x03(\t\x12\x15\n\rincident_type\x18\n \x01(\t\x12\x11\n\toperation\x18\x0b \x01(\t\x12\x11\n\tdimension\x18\x0c \x01(\t\x12\x1a\n\rcurrent_value\x18\r \x01(\x01H\x00\x88\x01\x01\x12\x1b\n\x0e\x62\x61seline_value\x18\x0e \x01(\x01H\x01\x88\x01\x01\x42\x10\n\x0e_current_valueB\x11\n\x0f_baseline_value\"\xe0\x02\n\x0bLogEvidence\x12\n\n\x02id\x18\x01 \x01(\t\x12\x11\n\ttimestamp\x18\x02 \x01(\t\x12\r\n\x05level\x18\x03 \x01(\t\x12\x10\n\x08trace_id\x18\x04 \x01(\t\x12\x0f\n\x07message\x18\x05 \x01(\t\x12\x13\n\x0b\x66ingerprint\x18\x06 \x01(\t\x12\x0f\n\x07span_id\x18\x07 \x01(\t\x12\x16\n\x0eparent_span_id\x18\x08 \x01(\t\x12\x12\n\nrequest_id\x18\t \x01(\t\x12\x11\n\toperation\x18\n \x01(\t\x12\x11\n\tspan_kind\x18\x0b \x01(\t\x12\x18\n\x0bstatus_code\x18\x0c \x01(\x05H\x00\x88\x01\x01\x12\x14\n\x07success\x18\r \x01(\x08H\x01\x88\x01\x01\x12\x12\n\nerror_code\x18\x0e \x01(\t\x12\x18\n\x0b\x64uration_ms\x18\x0f \x01(\x03H\x02\x88\x01\x01\x42\x0e\n\x0c_status_codeB\n\n\x08_successB\x0e\n\x0c_duration_ms2\x83\x01\n\x16IncidentContextService\x12i\n\x12GetIncidentContext\x12(.observability.v1.IncidentContextRequest\x1a).observability.v1.IncidentContextResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -34,9 +34,9 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_INCIDENTCONTEXTREQUEST']._serialized_start=44
   _globals['_INCIDENTCONTEXTREQUEST']._serialized_end=108
   _globals['_INCIDENTCONTEXTRESPONSE']._serialized_start=111
-  _globals['_INCIDENTCONTEXTRESPONSE']._serialized_end=310
-  _globals['_LOGEVIDENCE']._serialized_start=312
-  _globals['_LOGEVIDENCE']._serialized_end=427
-  _globals['_INCIDENTCONTEXTSERVICE']._serialized_start=430
-  _globals['_INCIDENTCONTEXTSERVICE']._serialized_end=561
+  _globals['_INCIDENTCONTEXTRESPONSE']._serialized_end=492
+  _globals['_LOGEVIDENCE']._serialized_start=495
+  _globals['_LOGEVIDENCE']._serialized_end=847
+  _globals['_INCIDENTCONTEXTSERVICE']._serialized_start=850
+  _globals['_INCIDENTCONTEXTSERVICE']._serialized_end=981
 # @@protoc_insertion_point(module_scope)

@@ -26,6 +26,14 @@ class JavaGrpcClient:
             severity=response.severity,
             status=response.status,
             fingerprint=response.fingerprint,
+            related_trace_ids=list(response.related_trace_ids),
+            incident_type=response.incident_type,
+            operation=response.operation or None,
+            dimension=response.dimension or None,
+            current_value=(response.current_value if response.HasField("current_value") else None),
+            baseline_value=(
+                response.baseline_value if response.HasField("baseline_value") else None
+            ),
             logs=[
                 LogEvidence(
                     id=log.id,
@@ -34,6 +42,15 @@ class JavaGrpcClient:
                     trace_id=log.trace_id or None,
                     message=log.message,
                     fingerprint=log.fingerprint,
+                    span_id=log.span_id or None,
+                    parent_span_id=log.parent_span_id or None,
+                    request_id=log.request_id or None,
+                    operation=log.operation or None,
+                    span_kind=log.span_kind or None,
+                    status_code=(log.status_code if log.HasField("status_code") else None),
+                    success=log.success if log.HasField("success") else None,
+                    error_code=log.error_code or None,
+                    duration_ms=(log.duration_ms if log.HasField("duration_ms") else None),
                 )
                 for log in response.logs
             ],

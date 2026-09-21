@@ -20,6 +20,12 @@ message IncidentContextResponse {
   string status = 6;
   string fingerprint = 7;
   repeated LogEvidence logs = 8;
+  repeated string related_trace_ids = 9;
+  string incident_type = 10;
+  string operation = 11;
+  string dimension = 12;
+  optional double current_value = 13;
+  optional double baseline_value = 14;
 }
 
 message LogEvidence {
@@ -29,4 +35,13 @@ message LogEvidence {
   string trace_id = 4;
   string message = 5;
   string fingerprint = 6;
+  string span_id = 7;
+  string parent_span_id = 8;
+  string request_id = 9;
+  string operation = 10;
+  string span_kind = 11;
+  optional int32 status_code = 12;
+  optional bool success = 13;
+  string error_code = 14;
+  optional int64 duration_ms = 15;
 }

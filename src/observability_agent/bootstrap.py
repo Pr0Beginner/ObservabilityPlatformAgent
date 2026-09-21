@@ -7,6 +7,7 @@ from observability_agent.graph.builder import build_diagnosis_graph
 from observability_agent.graph.dependencies import GraphDependencies
 from observability_agent.messaging.diagnosis_worker import KafkaDiagnosisWorker
 from observability_agent.messaging.kafka_publisher import KafkaEventPublisher
+from observability_agent.messaging.kafka_topics import KafkaTopicProvisioner
 from observability_agent.persistence.idempotency_store import SqliteIdempotencyStore
 from observability_agent.services.diagnosis_runner import DiagnosisRunner
 from observability_agent.services.progress_reporter import KafkaProgressReporter
@@ -33,6 +34,7 @@ def build_runtime(settings: Settings) -> AgentRuntime:
     progress_reporter = KafkaProgressReporter(
         publisher,
         settings.kafka_diagnosis_progress_topic,
+        enabled=settings.kafka_progress_enabled,
     )
     grpc_client = JavaGrpcClient(
         settings.java_grpc_target,
@@ -51,5 +53,17 @@ def build_runtime(settings: Settings) -> AgentRuntime:
         settings.idempotency_db_path,
         settings.idempotency_stale_after_seconds,
     )
-    worker = KafkaDiagnosisWorker(settings, runner, publisher, idempotency_store)
+    topic_provisioner = KafkaTopicProvisioner(
+        settings.kafka_bootstrap_servers,
+        settings.kafka_dlq_partitions,
+        settings.kafka_dlq_replication_factor,
+        settings.kafka_admin_timeout_seconds,
+    )
+    worker = KafkaDiagnosisWorker(
+        settings,
+        runner,
+        publisher,
+        idempotency_store,
+        topic_provisioner,
+    )
     return AgentRuntime(worker=worker, publisher=publisher, grpc_client=grpc_client)

@@ -1,11 +1,10 @@
 {
-  "eventId": "evt-002",
-  "taskId": "task-001",
-  "incidentId": "incident-001",
-  "version": 1,
-  "sequence": 3,
-  "step": "ANALYZING_LOGS",
-  "progress": 55,
-  "message": "正在分析相关日志",
-  "occurredAt": "2026-09-16T10:00:03Z"
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "diagnosis-progress-v1", "type": "object",
+  "required": ["eventId", "taskId", "incidentId", "version", "sequence", "step", "progress", "message", "occurredAt"],
+  "properties": {
+    "eventId": {"type": "string"}, "taskId": {"type": "string"}, "incidentId": {"type": "string"},
+    "version": {"type": "integer", "minimum": 1}, "sequence": {"type": "integer", "minimum": 1},
+    "step": {"type": "string"}, "progress": {"type": "integer", "minimum": 0, "maximum": 100},
+    "message": {"type": "string"}, "occurredAt": {"type": "string", "format": "date-time"}
+  }, "additionalProperties": false
 }

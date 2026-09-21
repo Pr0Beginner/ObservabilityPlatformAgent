@@ -1,10 +1,10 @@
 {
-  "eventId": "evt-004",
-  "taskId": "task-001",
-  "incidentId": "incident-001",
-  "version": 1,
-  "errorCode": "MODEL_TIMEOUT",
-  "errorMessage": "DeepSeek request timed out",
-  "retryable": true,
-  "occurredAt": "2026-09-16T10:00:45Z"
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "diagnosis-failed-v1", "type": "object",
+  "required": ["eventId", "taskId", "incidentId", "version", "errorCode", "errorMessage", "retryable", "occurredAt"],
+  "properties": {
+    "eventId": {"type": "string"}, "taskId": {"type": "string"}, "incidentId": {"type": "string"},
+    "version": {"type": "integer", "minimum": 1}, "errorCode": {"type": "string"},
+    "errorMessage": {"type": "string"}, "retryable": {"type": "boolean"},
+    "occurredAt": {"type": "string", "format": "date-time"}
+  }, "additionalProperties": false
 }

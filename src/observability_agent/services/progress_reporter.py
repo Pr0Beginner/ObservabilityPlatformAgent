@@ -10,9 +10,15 @@ from observability_agent.schemas.events import (
 
 
 class KafkaProgressReporter:
-    def __init__(self, publisher: KafkaEventPublisher, topic: str) -> None:
+    def __init__(
+        self,
+        publisher: KafkaEventPublisher,
+        topic: str,
+        enabled: bool = True,
+    ) -> None:
         self._publisher = publisher
         self._topic = topic
+        self._enabled = enabled
         self._sequences: dict[str, int] = defaultdict(int)
         self._lock = threading.Lock()
 
@@ -23,6 +29,8 @@ class KafkaProgressReporter:
         progress: int,
         message: str,
     ) -> None:
+        if not self._enabled:
+            return
         with self._lock:
             self._sequences[request.task_id] += 1
             sequence = self._sequences[request.task_id]

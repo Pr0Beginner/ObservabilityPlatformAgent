@@ -10,3 +10,5 @@ htmlcov/
 .data/
 dist/
 build/
+hs_err_pid*.log
+replay_pid*.log

@@ -1,13 +1,16 @@
 {
-  "eventId": "evt-003",
-  "taskId": "task-001",
-  "incidentId": "incident-001",
-  "version": 1,
-  "rootCause": "数据库连接池耗尽导致请求超时",
-  "confidence": 0.86,
-  "evidence": ["log-001: 出现连接获取超时"],
-  "recommendations": ["检查连接泄漏和慢 SQL"],
-  "toolCalls": ["get_incident_context(incidentId=incident-001, logLimit=100)"],
-  "completedAt": "2026-09-16T10:00:05Z",
-  "error": null
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "diagnosis-completed-v1",
+  "type": "object",
+  "required": ["eventId", "taskId", "incidentId", "version", "rootCause", "confidence", "evidence", "recommendations", "toolCalls", "completedAt", "error"],
+  "properties": {
+    "eventId": {"type": "string"}, "taskId": {"type": "string"}, "incidentId": {"type": "string"},
+    "version": {"type": "integer", "minimum": 1}, "rootCause": {"type": "string"},
+    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "evidence": {"type": "array", "items": {"type": "string"}},
+    "recommendations": {"type": "array", "items": {"type": "string"}},
+    "toolCalls": {"type": "array", "items": {"type": "string"}},
+    "completedAt": {"type": "string", "format": "date-time"}, "error": {"type": ["string", "null"]}
+  },
+  "additionalProperties": false
 }
