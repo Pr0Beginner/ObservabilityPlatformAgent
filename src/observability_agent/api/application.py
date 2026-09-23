@@ -2,6 +2,7 @@ from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 
 from observability_agent.bootstrap import AgentRuntime, build_runtime
 from observability_agent.core.config import Settings, get_settings
@@ -38,11 +39,13 @@ def create_app(
         return {"status": "UP"}
 
     @app.get("/health/ready")
-    def readiness() -> dict[str, str]:
+    def readiness() -> JSONResponse:
         runtime = app.state.runtime
         ready = not resolved_settings.kafka_enabled or (
-            runtime is not None and runtime.worker.is_alive
+            runtime is not None and runtime.worker.is_ready
         )
-        return {"status": "UP" if ready else "DOWN"}
+        return JSONResponse(
+            {"status": "UP" if ready else "DOWN"}, status_code=200 if ready else 503
+        )
 
     return app

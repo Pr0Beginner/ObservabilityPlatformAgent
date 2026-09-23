@@ -51,7 +51,6 @@ def build_runtime(settings: Settings) -> AgentRuntime:
     runner = DiagnosisRunner(graph, progress_reporter)
     idempotency_store = SqliteIdempotencyStore(
         settings.idempotency_db_path,
-        settings.idempotency_stale_after_seconds,
     )
     topic_provisioner = KafkaTopicProvisioner(
         settings.kafka_bootstrap_servers,

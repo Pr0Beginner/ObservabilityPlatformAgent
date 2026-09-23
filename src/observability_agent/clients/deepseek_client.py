@@ -1,4 +1,4 @@
-import re
+import json
 from pathlib import Path
 from typing import Protocol
 
@@ -7,19 +7,13 @@ from langchain_openai import ChatOpenAI
 
 from observability_agent.core.config import Settings
 from observability_agent.core.exceptions import ModelConfigurationError
+from observability_agent.core.sensitive_data import redact_sensitive, redact_value
 from observability_agent.schemas.context import IncidentContext
 from observability_agent.schemas.report import ModelDiagnosis
 
 MAX_LOGS = 100
 MAX_MESSAGE_CHARS = 2_000
 MAX_CONTEXT_CHARS = 60_000
-SENSITIVE_VALUE = re.compile(
-    r"(?i)(authorization|api[_-]?key|token|password)\s*[:=]\s*(?:bearer\s+)?[^\s,;]+"
-)
-
-
-def redact_sensitive(value: str) -> str:
-    return SENSITIVE_VALUE.sub(lambda match: f"{match.group(1)}=[REDACTED]", value)
 
 
 class DiagnosisAnalyzer(Protocol):
@@ -48,14 +42,20 @@ class DeepSeekDiagnosisAnalyzer:
             key=lambda log: (log.level.upper() not in {"ERROR", "FATAL"}, log.timestamp),
         )[:MAX_LOGS]
         safe_logs = [
-            log.model_copy(
-                update={"message": redact_sensitive(log.message[:MAX_MESSAGE_CHARS])}
-            )
+            log.model_copy(update={"message": redact_sensitive(log.message)[:MAX_MESSAGE_CHARS]})
             for log in prioritized_logs
         ]
         bounded_context = context.model_copy(update={"logs": safe_logs})
-        payload = bounded_context.model_dump_json(by_alias=True, indent=2)[:MAX_CONTEXT_CHARS]
-        plan = "\n".join(f"{index}. {item}" for index, item in enumerate(analysis_plan, 1))
+        safe_context = redact_value(bounded_context.model_dump(by_alias=True, mode="json"))
+        payload = json.dumps(safe_context, ensure_ascii=False, indent=2)
+        while len(payload) > MAX_CONTEXT_CHARS and safe_context["logs"]:
+            safe_context["logs"].pop()
+            payload = json.dumps(safe_context, ensure_ascii=False, indent=2)
+        if len(payload) > MAX_CONTEXT_CHARS:
+            raise ValueError("incident metadata exceeds the model context budget")
+        plan = "\n".join(
+            f"{index}. {redact_sensitive(item)}" for index, item in enumerate(analysis_plan, 1)
+        )
         result = self._model.invoke(
             [
                 SystemMessage(content=self._system_prompt),

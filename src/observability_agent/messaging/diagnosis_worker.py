@@ -1,5 +1,7 @@
+import base64
 import json
 import threading
+import time
 from datetime import UTC, datetime
 from typing import Any
 
@@ -40,6 +42,8 @@ class KafkaDiagnosisWorker:
             settings.kafka_admin_timeout_seconds,
         )
         self._stop_event = threading.Event()
+        self._assigned = threading.Event()
+        self._connected = threading.Event()
         self._thread: threading.Thread | None = None
         self._logger = structlog.get_logger(__name__)
 
@@ -47,9 +51,19 @@ class KafkaDiagnosisWorker:
     def is_alive(self) -> bool:
         return self._thread is not None and self._thread.is_alive()
 
+    @property
+    def is_ready(self) -> bool:
+        return (
+            self.is_alive
+            and not self._stop_event.is_set()
+            and self._assigned.is_set()
+            and self._connected.is_set()
+        )
+
     def start(self) -> None:
         if self.is_alive:
             return
+        self._stop_event.clear()
         self._thread = threading.Thread(
             target=self._consume_loop, name="diagnosis-kafka-consumer", daemon=True
         )
@@ -57,6 +71,7 @@ class KafkaDiagnosisWorker:
 
     def stop(self, timeout: float = 15) -> None:
         self._stop_event.set()
+        self._connected.clear()
         if self._thread is not None:
             self._thread.join(timeout=timeout)
 
@@ -69,26 +84,57 @@ class KafkaDiagnosisWorker:
                 "enable.auto.commit": False,
                 "max.poll.interval.ms": self._settings.kafka_max_poll_interval_ms,
                 "session.timeout.ms": self._settings.kafka_session_timeout_ms,
+                "error_cb": self._on_kafka_error,
             }
         )
+
+    def _on_assign(self, consumer, partitions) -> None:
+        if partitions:
+            self._assigned.set()
+
+    def _on_revoke(self, consumer, partitions) -> None:
+        self._assigned.clear()
+
+    def _on_kafka_error(self, error) -> None:
+        self._connected.clear()
+
+    def _probe_connection(self, consumer: Consumer) -> None:
+        metadata = consumer.list_topics(
+            topic=self._settings.kafka_diagnosis_requested_topic,
+            timeout=self._settings.kafka_readiness_timeout_seconds,
+        )
+        topic = metadata.topics.get(self._settings.kafka_diagnosis_requested_topic)
+        if topic is None or topic.error is not None:
+            raise ConnectionError("diagnosis request topic is unavailable")
+        self._connected.set()
 
     def _consume_loop(self) -> None:
         backoff = 1.0
         while not self._stop_event.is_set():
             consumer: Consumer | None = None
             try:
-                self._topic_provisioner.ensure_topic(
-                    self._settings.kafka_diagnosis_dlq_topic
-                )
+                self._topic_provisioner.ensure_topic(self._settings.kafka_diagnosis_dlq_topic)
                 consumer = self._new_consumer()
-                consumer.subscribe([self._settings.kafka_diagnosis_requested_topic])
+                consumer.subscribe(
+                    [self._settings.kafka_diagnosis_requested_topic],
+                    on_assign=self._on_assign,
+                    on_revoke=self._on_revoke,
+                    on_lost=self._on_revoke,
+                )
                 self._logger.info(
                     "diagnosis_worker_started",
                     topic=self._settings.kafka_diagnosis_requested_topic,
                 )
-                backoff = 1.0
+                next_probe = 0.0
                 while not self._stop_event.is_set():
                     message = consumer.poll(1.0)
+                    if time.monotonic() >= next_probe:
+                        self._probe_connection(consumer)
+                        next_probe = (
+                            time.monotonic() + self._settings.kafka_readiness_interval_seconds
+                        )
+                        if self._assigned.is_set():
+                            backoff = 1.0
                     if message is None:
                         continue
                     if message.error():
@@ -97,20 +143,30 @@ class KafkaDiagnosisWorker:
                         raise KafkaException(message.error())
                     self._handle_message(consumer, message)
             except Exception:
+                self._connected.clear()
+                self._assigned.clear()
                 self._logger.exception("diagnosis_worker_cycle_failed", retry_in_seconds=backoff)
                 self._stop_event.wait(backoff)
                 backoff = min(backoff * 2, 30.0)
             finally:
+                self._connected.clear()
+                self._assigned.clear()
                 if consumer is not None:
-                    consumer.close()
+                    try:
+                        consumer.close()
+                    except Exception:
+                        self._logger.exception("diagnosis_consumer_close_failed")
         self._logger.info("diagnosis_worker_stopped")
 
     def _handle_message(self, consumer: Consumer, message: Message) -> None:
-        raw_payload = message.value().decode("utf-8")
+        raw_value = message.value()
         try:
+            if raw_value is None:
+                raise ValueError("diagnosis request must not be a null Kafka value")
+            raw_payload = raw_value.decode("utf-8")
             request = DiagnosisRequestedEvent.model_validate_json(raw_payload)
         except (ValidationError, ValueError) as error:
-            self._publish_dlq(message, raw_payload, error)
+            self._publish_dlq(message, raw_value, error)
             self._publisher.flush()
             consumer.commit(message=message, asynchronous=False)
             return
@@ -229,7 +285,7 @@ class KafkaDiagnosisWorker:
             return "INVALID_DIAGNOSIS_DATA", False
         return "DIAGNOSIS_EXECUTION_FAILED", False
 
-    def _publish_dlq(self, message: Message, raw_payload: str, error: Exception) -> None:
+    def _publish_dlq(self, message: Message, raw_value: bytes | None, error: Exception) -> None:
         payload: dict[str, Any] = {
             "sourceTopic": message.topic(),
             "partition": message.partition(),
@@ -239,15 +295,21 @@ class KafkaDiagnosisWorker:
             "errorType": error.__class__.__name__,
             "errorMessage": str(error),
             "occurredAt": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
-            "payload": self._safe_json(raw_payload),
+            "payload": self._safe_payload(raw_value),
         }
         self._publisher.publish(
             self._settings.kafka_diagnosis_dlq_topic, payload, key="invalid-diagnosis-request"
         )
 
     @staticmethod
-    def _safe_json(payload: str) -> Any:
+    def _safe_payload(payload: bytes | None) -> Any:
+        if payload is None:
+            return None
         try:
-            return json.loads(payload)
+            decoded = payload.decode("utf-8")
+        except UnicodeDecodeError:
+            return {"encoding": "base64", "data": base64.b64encode(payload).decode("ascii")}
+        try:
+            return json.loads(decoded)
         except json.JSONDecodeError:
-            return payload
+            return decoded

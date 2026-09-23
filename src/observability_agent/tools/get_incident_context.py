@@ -18,7 +18,4 @@ class GetIncidentContextTool:
         return self._client.get_incident_context(incident_id, self._log_limit)
 
     def describe_call(self, incident_id: str) -> str:
-        return (
-            f"{self.name}(incidentId={incident_id}, "
-            f"logLimit={self._log_limit})"
-        )
+        return f"{self.name}(incidentId={incident_id}, logLimit={self._log_limit})"

@@ -16,9 +16,7 @@ class KafkaTopicProvisioner:
         timeout_seconds: float,
         admin_client: Any | None = None,
     ) -> None:
-        self._admin_client = admin_client or AdminClient(
-            {"bootstrap.servers": bootstrap_servers}
-        )
+        self._admin_client = admin_client or AdminClient({"bootstrap.servers": bootstrap_servers})
         self._partitions = partitions
         self._replication_factor = replication_factor
         self._timeout_seconds = timeout_seconds

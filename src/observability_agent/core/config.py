@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     kafka_admin_timeout_seconds: float = Field(default=10, gt=0)
     kafka_session_timeout_ms: int = Field(default=45_000, ge=6_000)
     kafka_max_poll_interval_ms: int = Field(default=540_000, ge=60_000, lt=600_000)
+    kafka_readiness_interval_seconds: float = Field(default=15, gt=0)
+    kafka_readiness_timeout_seconds: float = Field(default=3, gt=0)
 
     java_grpc_target: str = "localhost:9090"
     java_grpc_timeout_seconds: float = Field(default=10, gt=0)
@@ -43,7 +45,6 @@ class Settings(BaseSettings):
     deepseek_max_retries: int = Field(default=2, ge=0, le=5)
 
     idempotency_db_path: Path = Path(".data/agent.db")
-    idempotency_stale_after_seconds: int = Field(default=300, ge=30)
 
     health_host: str = "0.0.0.0"
     health_port: int = Field(default=8090, ge=1, le=65535)

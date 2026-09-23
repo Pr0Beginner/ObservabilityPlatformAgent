@@ -28,6 +28,10 @@ Java -- diagnosis.requested.v1 --> Kafka --> Agent
 
 SQLite 方案只支持单 Agent 实例。生产多实例需要共享幂等/outbox 存储或重构为 Kafka 原生事务流程。
 
+日志中的结构化字段、内嵌 JSON、故障元数据和分析计划在模型调用前统一脱敏；上下文超限时按完整日志裁剪，保留有效 JSON。空 Kafka value 和非 UTF-8 数据会送入请求 DLQ；不可解码字节用 Base64 保留，只有 DLQ delivery ack 后才提交原消息位点。
+
+`/health/live` 表示进程存活，`/health/ready` 在消费线程存活、取得分区且 Kafka 元数据探测成功时返回 200，否则返回 503。Kafka 探测周期与超时分别由 `KAFKA_READINESS_INTERVAL_SECONDS`（默认 15）和 `KAFKA_READINESS_TIMEOUT_SECONDS`（默认 3）配置。SQLite 重启接管依据进程所有者标识，原先未生效的 `IDEMPOTENCY_STALE_AFTER_SECONDS` 配置已移除。
+
 ## Topic 与地址
 
 | Topic | 方向 | 当前状态 |
@@ -68,6 +72,7 @@ uv run python -m grpc_tools.protoc `
 ```powershell
 uv run pytest
 uv run ruff check .
+uv run ruff format --check .
 ```
 
 ## 评测建议

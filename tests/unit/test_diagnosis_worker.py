@@ -16,8 +16,11 @@ class FakeRunner:
     def run(self, request):  # noqa: ANN001
         self.calls += 1
         return DiagnosisReport(
-            root_cause="database timeout", confidence=0.8, evidence=[],
-            recommendations=["inspect pool"], tool_calls=["get_incident_context(...)"],
+            root_cause="database timeout",
+            confidence=0.8,
+            evidence=[],
+            recommendations=["inspect pool"],
+            tool_calls=["get_incident_context(...)"],
         )
 
 
@@ -62,7 +65,10 @@ def test_redelivery_reuses_result_after_delivery_failure(tmp_path) -> None:
     runner = FakeRunner()
     failing_publisher = FakePublisher(fail_flush=True)
     worker = KafkaDiagnosisWorker(
-        Settings(), runner, failing_publisher, SqliteIdempotencyStore(db, 60)  # type: ignore[arg-type]
+        Settings(),
+        runner,
+        failing_publisher,
+        SqliteIdempotencyStore(db),  # type: ignore[arg-type]
     )
     first_consumer = FakeConsumer()
 
@@ -74,8 +80,10 @@ def test_redelivery_reuses_result_after_delivery_failure(tmp_path) -> None:
     recovered_runner = FakeRunner()
     recovered_publisher = FakePublisher()
     recovered_worker = KafkaDiagnosisWorker(
-        Settings(), recovered_runner, recovered_publisher,
-        SqliteIdempotencyStore(db, 60),  # type: ignore[arg-type]
+        Settings(),
+        recovered_runner,
+        recovered_publisher,
+        SqliteIdempotencyStore(db),  # type: ignore[arg-type]
     )
     second_consumer = FakeConsumer()
     recovered_worker._handle_message(second_consumer, FakeMessage())  # type: ignore[arg-type]
@@ -83,11 +91,14 @@ def test_redelivery_reuses_result_after_delivery_failure(tmp_path) -> None:
     assert recovered_runner.calls == 0
     assert second_consumer.commits == 1
     assert recovered_publisher.messages[0][1] == failing_publisher.messages[0][1]
-    assert datetime.fromisoformat(
-        __import__("json").loads(recovered_publisher.messages[0][1])["completedAt"].replace(
-            "Z", "+00:00"
-        )
-    ).tzinfo == UTC
+    assert (
+        datetime.fromisoformat(
+            __import__("json")
+            .loads(recovered_publisher.messages[0][1])["completedAt"]
+            .replace("Z", "+00:00")
+        ).tzinfo
+        == UTC
+    )
 
 
 def test_failed_topic_is_not_published_by_default(tmp_path) -> None:
@@ -97,7 +108,7 @@ def test_failed_topic_is_not_published_by_default(tmp_path) -> None:
         settings,
         FailingRunner(),  # type: ignore[arg-type]
         publisher,  # type: ignore[arg-type]
-        SqliteIdempotencyStore(tmp_path / "agent.db", 60),
+        SqliteIdempotencyStore(tmp_path / "agent.db"),
     )
     consumer = FakeConsumer()
 

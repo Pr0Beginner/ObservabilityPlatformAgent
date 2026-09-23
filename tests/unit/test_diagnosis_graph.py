@@ -64,7 +64,5 @@ def test_graph_builds_grounded_report() -> None:
 
     assert result["report"].root_cause == "数据库连接池耗尽"
     assert result["report"].evidence[0].log_id == "log-1"
-    assert result["tool_calls"] == [
-        "get_incident_context(incidentId=incident-1, logLimit=100)"
-    ]
+    assert result["tool_calls"] == ["get_incident_context(incidentId=incident-1, logLimit=100)"]
     assert len(progress) == 6

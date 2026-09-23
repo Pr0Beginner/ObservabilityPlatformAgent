@@ -21,9 +21,9 @@ class ExecutionClaim:
 
 
 class SqliteIdempotencyStore:
-    """Single-instance durable outbox and execution lease."""
+    """Single-instance durable outbox with restart ownership recovery."""
 
-    def __init__(self, path: Path, stale_after_seconds: int) -> None:
+    def __init__(self, path: Path) -> None:
         self._path = path
         self._owner_id = str(uuid4())
         self._lock = threading.Lock()
@@ -117,8 +117,13 @@ class SqliteIdempotencyStore:
                 WHERE task_id = ? AND version = ? AND owner_id = ?
                 """,
                 (
-                    datetime.now(UTC).isoformat(), error, completed_payload, failed_payload,
-                    task_id, version, self._owner_id,
+                    datetime.now(UTC).isoformat(),
+                    error,
+                    completed_payload,
+                    failed_payload,
+                    task_id,
+                    version,
+                    self._owner_id,
                 ),
             )
             if cursor.rowcount != 1:
